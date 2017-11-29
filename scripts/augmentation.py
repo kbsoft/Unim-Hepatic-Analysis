@@ -128,6 +128,7 @@ def save_tile(img, M, save_img_path, color=True):
             cv2.warpPerspective(img, M, (max_w, max_h)), cv2.COLOR_GRAY2RGB)
     im_pil = Image.fromarray(transformed_img)
     im_pil.save(save_img_path)
+    return transformed_img
 
 
 def count_colours(img):
@@ -165,10 +166,10 @@ def crop(img_path,
     img_bg = cv2.imread(img_bg_path, cv2.IMREAD_UNCHANGED)[:, :, 3]
 
     colored_img = random_color(img, augmentation_settings)
-    save_tile(colored_img, M, save_img_path, True)
-    save_tile(img_bg, M, save_bg_path, False)
+    _ = save_tile(colored_img, M, save_img_path, True)
+    tile_img_bg = save_tile(img_bg, M, save_bg_path, False)
 
-    write_log(save_bg_path[:-4] + '.txt', img_bg, new_points)
+    write_log(save_bg_path[:-4] + '.txt', tile_img_bg, new_points)
 
     return True
 
@@ -231,8 +232,6 @@ def random_color(img, augmentation_settings):
 
 
 def write_log(name, img, points):
-    print(name)
-    f = open(name, 'w')
     colours = count_colours(img)
     answer = 0
     if 0 in colours:
@@ -241,6 +240,8 @@ def write_log(name, img, points):
         answer = 1
     if 255 in colours and 0 in colours:
         answer = colours[255] / (colours[0] + colours[255])
+
+    f = open(name, 'w')
     f.write(json.dumps(points.tolist()))
     f.write('\n')
     f.write(str(answer))
